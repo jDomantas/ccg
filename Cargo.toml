@@ -1,0 +1,5 @@
+[workspace]
+members = [
+    "crates/engine",
+    "crates/game",
+]

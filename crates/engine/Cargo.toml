@@ -1,0 +1,9 @@
+[package]
+name = "engine"
+version = "0.1.0"
+authors = ["djade <djadenkus@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+ggez = "0.5.1"
+winit = "0.19.1"
