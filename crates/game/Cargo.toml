@@ -8,3 +8,4 @@ edition = "2018"
 engine = { path = "../engine" }
 serde = { version = "1.0.114", features = ["derive"] }
 ron = "0.6.0"
+rand = "0.7"

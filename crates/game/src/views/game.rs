@@ -459,6 +459,13 @@ pub struct GameState {
     durability_text: Text,
 }
 
+fn make_deck(cards: &[Card]) -> Vec<VisibleCard> {
+    use rand::seq::SliceRandom;
+    let mut cards = cards.iter().cloned().map(VisibleCard::new).collect::<Vec<_>>();
+    cards.shuffle(&mut rand::thread_rng());
+    cards
+}
+
 impl GameState {
     pub fn new(decks: &Decks) -> GameState {
         fn create_text() -> Text {
@@ -471,8 +478,8 @@ impl GameState {
                 Field::new_pending(2),
                 Field::new_pending(3),
             ],
-            deck: decks.draw.iter().cloned().map(VisibleCard::new).collect(),
-            trap_deck: decks.trap.iter().cloned().map(VisibleCard::new).collect(),
+            deck: make_deck(&decks.draw),
+            trap_deck: make_deck(&decks.trap),
             hand: Vec::new(),
             drag: None,
             preparing: true,
