@@ -1,0 +1,15 @@
+(
+    icon: "sword",
+    title: "sword",
+    description: [
+        "5 attack",
+        "2 hits",
+        "6 coins",
+    ],
+    effect: Weapon(
+        icon: "sword",
+        damage: 5,
+        durability: 2,
+        price: 6,
+    )
+)

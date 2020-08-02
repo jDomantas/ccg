@@ -1,0 +1,11 @@
+(
+    icon: "bang",
+    title: "big bonk",
+    description: [
+        "+5 to next",
+        "attack",
+    ],
+    effect: NextAttackBonus(
+        bonus: 5,
+    )
+)

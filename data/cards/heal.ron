@@ -1,0 +1,10 @@
+(
+    icon: "heart",
+    title: "heal",
+    description: [
+        "+5 health",
+    ],
+    effect: Heal(
+        health: 5,
+    )
+)

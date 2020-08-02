@@ -1,0 +1,14 @@
+(
+    draw: {
+        "bonk": 5,
+        "big-bonk": 2,
+        "heal": 2,
+        "sword": 1,
+        "beholder": 3,
+    },
+    trap: {
+        "heal-enemy": 1,
+        "empty": 5,
+    },
+    boss: "boss",
+)

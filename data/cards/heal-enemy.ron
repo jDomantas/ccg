@@ -1,0 +1,11 @@
+(
+    icon: "green-heart",
+    title: "heal foe",
+    description: [
+        "heal next",
+        "enemy by 3",
+    ],
+    effect: HealEnemy(
+        health: 3,
+    )
+)

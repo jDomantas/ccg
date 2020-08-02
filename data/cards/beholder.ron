@@ -1,0 +1,15 @@
+(
+    icon: "beholder",
+    title: "beholder",
+    description: [
+        "5 attack",
+        "10 health",
+        "5 coins",
+    ],
+    effect: Enemy(
+        icon: "beholder",
+        attack: 5,
+        health: 10,
+        coins: 6,
+    )
+)

@@ -6,3 +6,5 @@ edition = "2018"
 
 [dependencies]
 engine = { path = "../engine" }
+serde = { version = "1.0.114", features = ["derive"] }
+ron = "0.6.0"
