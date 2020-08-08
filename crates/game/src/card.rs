@@ -23,11 +23,20 @@ pub struct Buff {
 pub struct Creature {
     pub icon: Icon,
     pub health: u32,
-    pub max_health: u32,
+    pub max_health: Option<u32>,
     pub attack: u32,
     pub coins: u32,
     pub weapon: Option<Weapon>,
     pub buffs: Vec<Buff>,
+}
+
+impl Creature {
+    pub fn heal(&mut self, amount: u32) {
+        self.health += amount;
+        if let Some(limit) = self.max_health {
+            self.health = std::cmp::min(self.health, limit);
+        }
+    }
 }
 
 #[derive(Debug, Clone)]

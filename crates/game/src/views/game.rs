@@ -181,7 +181,7 @@ impl Field {
         field.player = Some(Player {
             creature: ActiveCreature::from(Creature {
                 icon: Icon::FIGHTER,
-                max_health: 10,
+                max_health: Some(10),
                 health: 10,
                 attack: 4,
                 coins: 0,
@@ -240,7 +240,7 @@ impl Field {
                 let cells = &mut self.cells[player.cell..];
                 for c in cells {
                     if let Some(creature) = &mut c.enemy {
-                        creature.creature.health += health;
+                        creature.creature.heal(*health);
                         return Some(Icon::GREEN_HEART);
                     }
                 }
@@ -251,7 +251,7 @@ impl Field {
                 Some(buff.icon)
             }
             CardEffect::Heal { health } => {
-                player.creature.creature.health += health;
+                player.creature.creature.heal(*health);
                 Some(Icon::HEART)
             }
         }
@@ -682,7 +682,15 @@ impl GameState {
                 attack_text += &format!("+{}", total);
             }
             self.attack_text.fragments_mut()[0].text = attack_text;
-            self.health_text.fragments_mut()[0].text = format!("{}", player.creature.creature.health);
+            if let Some(limit) = player.creature.creature.max_health {
+                self.health_text.fragments_mut()[0].text = format!(
+                    "{}/{}",
+                    player.creature.creature.health,
+                    limit,
+                );
+            } else {
+                self.health_text.fragments_mut()[0].text = format!("{}", player.creature.creature.health);
+            }
             self.coins_text.fragments_mut()[0].text = format!("{}", player.creature.creature.coins);
         }
     }

@@ -149,7 +149,7 @@ fn convert_effect(effect: &config::CardEffect) -> card::CardEffect {
             card::CardEffect::Enemy(card::Creature {
                 icon: engine::Icon::new(icon_index(icon)),
                 health,
-                max_health: health,
+                max_health: None,
                 attack,
                 coins,
                 weapon: None,

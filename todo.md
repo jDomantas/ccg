@@ -2,7 +2,7 @@
 [ ] show discard pile
 [ ] draw pile -> hand -> discard pile -> draw pile rotation
 [ ] show level number
-[ ] max health stat
+[x] max health stat
 [ ] card list preview (draw pile, discard pile, entire deck)
 [ ] outcome preview - how much health will remain, what items will be bought...
 [ ] settings screen (access via esc)
