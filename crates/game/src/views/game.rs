@@ -684,6 +684,8 @@ impl GameState {
                 });
                 card.target_pos = card.pos;
                 self.hand.insert(0, card);
+            } else if self.discards.len() > 0 {
+                self.deck = make_deck(&std::mem::take(&mut self.discards));
             } else {
                 break;
             }
@@ -693,6 +695,9 @@ impl GameState {
     fn draw_traps(&mut self) {
         for cell in self.field.cells.iter_mut().skip(1) {
             if cell.fixed {
+                if self.trap_deck.len() == 0 && self.trap_discards.len() > 0 {
+                    self.trap_deck = make_deck(&std::mem::take(&mut self.trap_discards));
+                }
                 if let Some(card) = self.trap_deck.pop() {
                     let mut card = VisibleCard::new(card, Rect {
                         x: 10.0 + CARD_WIDTH / 2.0,
@@ -748,6 +753,15 @@ impl View for GameState {
                 ActionState::Finished(t) if t >= 0.5 && self.field.player.is_some() && self.pending_fields.len() > 0 => {
                     let mut player = self.field.player.take().unwrap();
                     player.cell = 0;
+                    for cell in &mut self.field.cells {
+                        if let Some(card) = cell.card.take() {
+                            if cell.fixed {
+                                self.trap_discards.push(card.card);
+                            } else {
+                                self.discards.push(card.card);
+                            }
+                        }
+                    }
                     self.field = self.pending_fields.remove(0);
                     self.field.player = Some(player);
                     self.preparing = true;

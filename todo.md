@@ -1,6 +1,6 @@
-[ ] show draw pile
-[ ] show discard pile
-[ ] draw pile -> hand -> discard pile -> draw pile rotation
+[x] show draw pile
+[x] show discard pile
+[x] draw pile -> hand -> discard pile -> draw pile rotation
 [ ] show level number
 [x] max health stat
 [x] card list preview (draw pile, discard pile, entire deck)
