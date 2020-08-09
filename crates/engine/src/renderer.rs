@@ -1,5 +1,5 @@
 use ggez::Context;
-use ggez::graphics::{DrawParam, Image, Rect};
+use ggez::graphics::{DrawParam, Image, Rect, Color};
 use ggez::nalgebra::Point2;
 use crate::{Ctx, CtxData, Result};
 
@@ -47,6 +47,9 @@ impl Icon {
     pub const BLUE_BEHOLDER: Icon = Icon { index: 16 };
     pub const GREEN_HEART: Icon = Icon { index: 17 };
     pub const BROKEN: Icon = Icon { index: 18 };
+    pub const DECK: Icon = Icon { index: 19 };
+    pub const TRAP_DECK: Icon = Icon { index: 20 };
+    pub const BLACK: Icon = Icon { index: 21 };
 
     pub const fn new(index: u32) -> Icon {
         Icon { index }
@@ -120,6 +123,28 @@ impl<'a> FrameRenderer<'a> {
                 w: 0.125,
                 h: 0.125,
             });
+        ggez::graphics::draw(self.ctx, &self.renderer.icons, draw)
+    }
+
+    pub fn draw_fade(&mut self, opacity: f32) -> Result {
+        let mut opacity = (opacity * 256.0) as i64;
+        if opacity < 0 {
+            opacity = 0;
+        }
+        if opacity > 255 {
+            opacity = 255;
+        }
+        let opacity = opacity as u8;
+        let draw = DrawParam::new()
+            .dest(Point2::new(0.0, 0.0))
+            .scale([crate::SCREEN_WIDTH / 16.0, crate::SCREEN_HEIGHT / 16.0])
+            .src(Rect {
+                x: 5.0 / 8.0,
+                y: 2.0 / 8.0,
+                w: 0.125,
+                h: 0.125,
+            })
+            .color(Color::from_rgba(opacity, opacity, opacity, opacity));
         ggez::graphics::draw(self.ctx, &self.renderer.icons, draw)
     }
 }

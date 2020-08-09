@@ -3,7 +3,7 @@ use engine::{Ctx, FrameRenderer, Icon, Result, SCREEN_HEIGHT, SCREEN_WIDTH};
 use engine::ggez::graphics::{Text, TextFragment, Scale};
 use crate::GameData;
 use crate::card::{BuffKind, Card, CardEffect, Creature, Decks};
-use crate::views::View;
+use crate::views::{DrawKind, View, ViewChange};
 
 const CARD_WIDTH: f32 = 320.0 / 2.5;
 const CARD_HEIGHT: f32 = 448.0 / 2.5;
@@ -77,11 +77,11 @@ struct VisibleCard {
 }
 
 impl VisibleCard {
-    fn new(card: Card) -> VisibleCard {
+    fn new(card: Card, pos: Rect) -> VisibleCard {
         VisibleCard {
             card,
-            pos: Rect::default(),
-            target_pos: Rect::default(),
+            pos,
+            target_pos: pos,
         }
     }
 
@@ -445,32 +445,163 @@ impl Field {
     }
 }
 
+struct Label {
+    text: Text,
+    position: (f32, f32),
+    get_text: Box<dyn Fn(&GameState) -> String>,
+}
+
+impl Label {
+    fn new(position: (f32, f32), get_text: impl Fn(&GameState) -> String + 'static) -> Label {
+        Label {
+            text: Text::new(TextFragment::new("").scale(Scale::uniform(32.0))),
+            position,
+            get_text: Box::new(get_text),
+        }
+    }
+}
+
+struct Button {
+    bounds: Rect,
+    icon: Icon,
+    on_click: Box<dyn Fn(&mut GameState) -> ViewChange>,
+}
+
+impl Button {
+    fn new(bounds: Rect, icon: Icon, on_click: impl Fn(&mut GameState) -> ViewChange + 'static) -> Button {
+        Button {
+            bounds,
+            icon,
+            on_click: Box::new(on_click),
+        }
+    }
+}
+
 pub struct GameState {
     field: Field,
     pending_fields: Vec<Field>,
-    deck: Vec<VisibleCard>,
-    trap_deck: Vec<VisibleCard>,
+    deck: Vec<Card>,
+    trap_deck: Vec<Card>,
+    discards: Vec<Card>,
+    trap_discards: Vec<Card>,
     hand: Vec<VisibleCard>,
     drag: Option<VisibleCard>,
     preparing: bool,
-    health_text: Text,
-    coins_text: Text,
-    attack_text: Text,
-    durability_text: Text,
+    labels: Vec<Label>,
+    buttons: Vec<Button>,
 }
 
-fn make_deck(cards: &[Card]) -> Vec<VisibleCard> {
+fn make_deck(cards: &[Card]) -> Vec<Card> {
     use rand::seq::SliceRandom;
-    let mut cards = cards.iter().cloned().map(VisibleCard::new).collect::<Vec<_>>();
+    let mut cards = cards.iter().cloned().collect::<Vec<_>>();
     cards.shuffle(&mut rand::thread_rng());
     cards
 }
 
 impl GameState {
     pub fn new(decks: &Decks) -> GameState {
-        fn create_text() -> Text {
-            Text::new(TextFragment::new("?").scale(Scale::uniform(32.0)))
-        }
+        let health_label = Label::new((50.0, 10.0), |state| {
+            let player = if let Some(player) = &state.field.player {
+                player
+            } else {
+                return String::new();
+            };
+            if let Some(limit) = player.creature.creature.max_health {
+                format!(
+                    "{}/{}",
+                    player.creature.creature.health,
+                    limit,
+                )
+            } else {
+                format!("{}", player.creature.creature.health)
+            }
+        });
+        let coins_label = Label::new((50.0, 50.0), |state| {
+            let player = if let Some(player) = &state.field.player {
+                player
+            } else {
+                return String::new();
+            };
+            format!("{}", player.creature.creature.coins)
+        });
+        let damage_label = Label::new((50.0, 50.0), |state| {
+            let player = if let Some(player) = &state.field.player {
+                player
+            } else {
+                return String::new();
+            };
+            format!("{}", player.creature.creature.coins)
+        });
+        let damage_label = Label::new((50.0, 90.0), |state| {
+            let player = if let Some(player) = &state.field.player {
+                player
+            } else {
+                return String::new();
+            };
+            let mut total = player.creature.attack_power();
+            let mut attack_text = format!("{}", player.creature.creature.attack);
+            total -= player.creature.creature.attack;
+            if let Some(weapon) = &player.creature.creature.weapon {
+                attack_text += &format!("+{}", weapon.damage);
+                total -= weapon.damage;
+            }
+            if total > 0 {
+                attack_text += &format!("+{}", total);
+            }
+            attack_text
+        });
+        let durability_label = Label::new((50.0, 130.0), |state| {
+            let player = if let Some(player) = &state.field.player {
+                player
+            } else {
+                return String::new();
+            };
+            if let Some(weapon) = &player.creature.creature.weapon {
+                format!("{}", weapon.durability)
+            } else {
+                String::new()
+            }
+        });
+        let deck_button = Button::new(
+            Rect {
+                x: 10.0,
+                y: SCREEN_HEIGHT - 138.0,
+                w: 128.0,
+                h: 128.0,
+            },
+            Icon::DECK,
+            |state| ViewChange::Push(Box::new(super::card_list::CardList::new(state.deck.clone()))),
+        );
+        let trap_deck_button = Button::new(
+            Rect {
+                x: 10.0,
+                y: SCREEN_HEIGHT - 276.0,
+                w: 128.0,
+                h: 128.0,
+            },
+            Icon::TRAP_DECK,
+            |state| ViewChange::Push(Box::new(super::card_list::CardList::new(state.trap_deck.clone()))),
+        );
+        let discard_button = Button::new(
+            Rect {
+                x: SCREEN_WIDTH - 138.0,
+                y: SCREEN_HEIGHT - 138.0,
+                w: 128.0,
+                h: 128.0,
+            },
+            Icon::DECK,
+            |state| ViewChange::Push(Box::new(super::card_list::CardList::new(state.discards.clone()))),
+        );
+        let trap_discard_button = Button::new(
+            Rect {
+                x: SCREEN_WIDTH - 138.0,
+                y: SCREEN_HEIGHT - 276.0,
+                w: 128.0,
+                h: 128.0,
+            },
+            Icon::TRAP_DECK,
+            |state| ViewChange::Push(Box::new(super::card_list::CardList::new(state.trap_discards.clone()))),
+        );
         let mut state = GameState {
             field: Field::new(),
             pending_fields: vec![
@@ -480,21 +611,21 @@ impl GameState {
             ],
             deck: make_deck(&decks.draw),
             trap_deck: make_deck(&decks.trap),
+            discards: Vec::new(),
+            trap_discards: Vec::new(),
             hand: Vec::new(),
             drag: None,
             preparing: true,
-            health_text: create_text(),
-            coins_text: create_text(),
-            attack_text: create_text(),
-            durability_text: create_text(),
+            labels: vec![health_label, coins_label, damage_label],
+            buttons: vec![deck_button, trap_deck_button, discard_button, trap_discard_button],
         };
         let boss_cell = state.pending_fields.last_mut().unwrap().cells.last_mut().unwrap();
-        let mut boss = VisibleCard::new(decks.boss.clone());
-        boss.target_pos.x = boss_cell.position.0;
-        boss.target_pos.y = boss_cell.position.1 + 50.0 + CARD_HEIGHT / 2.0;
-        boss.target_pos.w = CARD_WIDTH;
-        boss.target_pos.h = CARD_HEIGHT;
-        boss.pos = boss.target_pos;
+        let mut boss = VisibleCard::new(decks.boss.clone(), Rect {
+            x: boss_cell.position.0,
+            y: boss_cell.position.1 + 50.0 + CARD_HEIGHT / 2.0,
+            w: CARD_WIDTH,
+            h: CARD_HEIGHT,
+        });
         boss_cell.card = Some(boss);
         boss_cell.enemy = boss_cell.card.as_ref().unwrap().get_creature().map(Into::into);
         state.layout_cards(true);
@@ -519,32 +650,6 @@ impl GameState {
                 card.pos = card.target_pos;
             }
         }
-        for (i, card) in self.deck.iter_mut().enumerate() {
-            let x = 10.0;
-            let y = SCREEN_HEIGHT - 10.0 - CARD_HEIGHT - i as f32 * 10.0;
-            card.target_pos = Rect {
-                x: x + CARD_WIDTH / 2.0,
-                y: y + CARD_HEIGHT / 2.0,
-                w: CARD_WIDTH,
-                h: CARD_HEIGHT,
-            };
-            if place {
-                card.pos = card.target_pos;
-            }
-        }
-        for (i, card) in self.trap_deck.iter_mut().enumerate() {
-            let x = 20.0 + CARD_WIDTH;
-            let y = SCREEN_HEIGHT - 10.0 - CARD_HEIGHT - i as f32 * 10.0;
-            card.target_pos = Rect {
-                x: x + CARD_WIDTH / 2.0,
-                y: y + CARD_HEIGHT / 2.0,
-                w: CARD_WIDTH,
-                h: CARD_HEIGHT,
-            };
-            if place {
-                card.pos = card.target_pos;
-            }
-        }
     }
 
     fn draw_hand(&mut self) {
@@ -553,6 +658,13 @@ impl GameState {
                 break;
             }
             if let Some(card) = self.deck.pop() {
+                let mut card = VisibleCard::new(card, Rect {
+                    x: 10.0 + CARD_WIDTH / 2.0,
+                    y: SCREEN_HEIGHT - 10.0 - CARD_HEIGHT / 2.0,
+                    w: CARD_WIDTH,
+                    h: CARD_HEIGHT,
+                });
+                card.target_pos = card.pos;
                 self.hand.insert(0, card);
             } else {
                 break;
@@ -563,7 +675,13 @@ impl GameState {
     fn draw_traps(&mut self) {
         for cell in self.field.cells.iter_mut().skip(1) {
             if cell.fixed {
-                if let Some(mut card) = self.trap_deck.pop() {
+                if let Some(card) = self.trap_deck.pop() {
+                    let mut card = VisibleCard::new(card, Rect {
+                        x: 10.0 + CARD_WIDTH / 2.0,
+                        y: SCREEN_HEIGHT - 10.0 - CARD_HEIGHT / 2.0,
+                        w: CARD_WIDTH,
+                        h: CARD_HEIGHT,
+                    });
                     card.target_pos.x = cell.position.0;
                     card.target_pos.y = cell.position.1 + 50.0 + CARD_HEIGHT / 2.0;
                     cell.card = Some(card);
@@ -573,7 +691,39 @@ impl GameState {
         }
     }
 
-    fn update(&mut self, ctx: &mut Ctx<'_>, dt: f32) {
+    fn draw(&mut self, renderer: &mut FrameRenderer<'_>) -> Result {
+        self.field.render(renderer)?;
+        for card in &self.hand {
+            card.draw(renderer)?;
+        }
+        if let Some(card) = &self.drag {
+            card.draw(renderer)?;
+        }
+
+        if let Some(player) = &self.field.player {
+            renderer.draw_icon(Icon::HEART, 10.0, 10.0, 32.0, 32.0)?;
+            renderer.draw_icon(Icon::COIN, 10.0, 50.0, 32.0, 32.0)?;
+            renderer.draw_icon(Icon::SWORD, 10.0, 90.0, 32.0, 32.0)?;
+            if let Some(weapon) = &player.creature.creature.weapon {
+                renderer.draw_icon(Icon::SWORD, 10.0, 130.0, 32.0, 32.0)?;
+            }
+        }
+        for label in &self.labels {
+            engine::ggez::graphics::queue_text(renderer.ggez(), &label.text, [label.position.0, label.position.1], Some(engine::ggez::graphics::BLACK));
+        }
+        for button in &self.buttons {
+            renderer.draw_icon(button.icon, button.bounds.x, button.bounds.y, button.bounds.w, button.bounds.h)?;
+        }
+        Ok(())
+    }
+}
+
+impl View for GameState {
+    fn draw_kind(&self) -> DrawKind {
+        DrawKind::Opaque
+    }
+
+    fn update(&mut self, data: &GameData, ctx: &mut Ctx<'_>, dt: f32) -> Result<ViewChange> {
         if !self.preparing {
             self.field.update_action(dt * 3.0);
             match self.field.action {
@@ -589,8 +739,23 @@ impl GameState {
                 _ => {}
             }
         }
-        let mouse_pressed = ctx.is_mouse_pressed();
+
         let (mouse_x, mouse_y) = ctx.mouse_position();
+        if ctx.is_mouse_click() {
+            let buttons = std::mem::take(&mut self.buttons);
+            for button in &buttons {
+                if button.bounds.contains(mouse_x, mouse_y) {
+                    let change = (button.on_click)(self);
+                    if !matches!(change, ViewChange::None) {
+                        self.buttons = buttons;
+                        return Ok(change);
+                    }
+                }
+            }
+            self.buttons = buttons;
+        }
+
+        let mouse_pressed = ctx.is_mouse_pressed();
         match &mut self.drag {
             Some(card) if mouse_pressed => {
                 card.pos.x = mouse_x;
@@ -655,9 +820,6 @@ impl GameState {
         for card in &mut self.hand {
             card.update(dt);
         }
-        for card in &mut self.deck {
-            card.update(dt);
-        }
 
         if engine::ggez::input::keyboard::is_key_pressed(
             ctx.ggez(),
@@ -669,75 +831,22 @@ impl GameState {
             self.preparing = false;
         }
 
-        if let Some(player) = &self.field.player {
-            let mut total = player.creature.attack_power();
-            let mut attack_text = format!("{}", player.creature.creature.attack);
-            total -= player.creature.creature.attack;
-            if let Some(weapon) = &player.creature.creature.weapon {
-                self.durability_text.fragments_mut()[0].text = format!("{}", weapon.durability);
-                attack_text += &format!("+{}", weapon.damage);
-                total -= weapon.damage;
-            }
-            if total > 0 {
-                attack_text += &format!("+{}", total);
-            }
-            self.attack_text.fragments_mut()[0].text = attack_text;
-            if let Some(limit) = player.creature.creature.max_health {
-                self.health_text.fragments_mut()[0].text = format!(
-                    "{}/{}",
-                    player.creature.creature.health,
-                    limit,
-                );
-            } else {
-                self.health_text.fragments_mut()[0].text = format!("{}", player.creature.creature.health);
-            }
-            self.coins_text.fragments_mut()[0].text = format!("{}", player.creature.creature.coins);
+        let mut labels = std::mem::take(&mut self.labels);
+        for label in &mut labels {
+            label.text.fragments_mut()[0].text = (label.get_text)(self);
         }
-    }
-
-    fn draw(&mut self, renderer: &mut FrameRenderer<'_>) -> Result {
-        self.field.render(renderer)?;
-        for card in &self.hand {
-            card.draw(renderer)?;
-        }
-        if let Some(card) = &self.drag {
-            card.draw(renderer)?;
-        }
-        for card in &self.deck {
-            card.draw_back(renderer)?;
-        }
-        for card in &self.trap_deck {
-            card.draw_back(renderer)?;
-        }
-        if let Some(player) = &self.field.player {
-            renderer.draw_icon(Icon::HEART, 10.0, 10.0, 32.0, 32.0)?;
-            engine::ggez::graphics::queue_text(renderer.ggez(), &self.health_text, [50.0, 10.0], Some(engine::ggez::graphics::BLACK));
-            renderer.draw_icon(Icon::COIN, 10.0, 50.0, 32.0, 32.0)?;
-            engine::ggez::graphics::queue_text(renderer.ggez(), &self.coins_text, [50.0, 50.0], Some(engine::ggez::graphics::BLACK));
-            renderer.draw_icon(Icon::SWORD, 10.0, 90.0, 32.0, 32.0)?;
-            engine::ggez::graphics::queue_text(renderer.ggez(), &self.attack_text, [50.0, 90.0], Some(engine::ggez::graphics::BLACK));
-            if let Some(weapon) = &player.creature.creature.weapon {
-                renderer.draw_icon(Icon::SWORD, 10.0, 130.0, 32.0, 32.0)?;
-                engine::ggez::graphics::queue_text(renderer.ggez(), &self.durability_text, [50.0, 130.0], Some(engine::ggez::graphics::BLACK));
-            }
-        }
-        Ok(())
-    }
-}
-
-impl View for GameState {
-    fn draw_kind(&self) -> super::DrawKind {
-        super::DrawKind::Opaque
-    }
-
-    fn update(&mut self, data: &GameData, ctx: &mut Ctx<'_>, dt: f32) -> Result<super::ViewChange> {
-        self.update(ctx, dt);
+        self.labels = labels;
         Ok(super::ViewChange::None)
     }
 
     fn draw(&mut self, renderer: &mut FrameRenderer<'_>) -> Result {
         self.draw(renderer)?;
-        engine::ggez::graphics::draw_queued_text(renderer.ggez(), engine::ggez::graphics::DrawParam::default(), None, engine::ggez::graphics::FilterMode::Linear)?;
+        engine::ggez::graphics::draw_queued_text(
+            renderer.ggez(),
+            engine::ggez::graphics::DrawParam::default(),
+            None,
+            engine::ggez::graphics::FilterMode::Linear,
+        )?;
         Ok(())
     }
 }

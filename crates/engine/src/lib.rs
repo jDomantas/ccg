@@ -22,6 +22,7 @@ struct CtxData {
     mode: WindowMode,
     old_mouse_press: bool,
     current_mouse_press: bool,
+    scroll_position: (f32, f32),
 }
 
 pub struct Ctx<'a> {
@@ -134,6 +135,10 @@ impl<'a> Ctx<'a> {
         let y = (point.1 * scale_h).round() / scale_h;
         (x, y)
     }
+
+    pub fn scroll_position(&self) -> (f32, f32) {
+        self.data.scroll_position
+    }
 }
 
 pub trait Game {
@@ -161,12 +166,18 @@ impl GameRunner {
                 mode: WindowMode::Windowed,
                 old_mouse_press: false,
                 current_mouse_press: false,
+                scroll_position: (0.0, 0.0),
             },
         }
     }
 }
 
 impl event::EventHandler for GameRunner {
+    fn mouse_wheel_event(&mut self, _ctx: &mut Context, x: f32, y: f32) {
+        self.ctx_data.scroll_position.0 -= x;
+        self.ctx_data.scroll_position.1 -= y;
+    }
+
     fn update(&mut self, ctx: &mut Context) -> GameResult {
         if !self.position_set {
             self.position_set = true;

@@ -81,6 +81,7 @@ fn load_cards(ctx: &mut Context, base: &Image, icons: &Image, textures: &mut Vec
         let texture = engine::Texture::new(textures.len() as u32);
         textures.push(image);
         cards.insert(name.to_owned(), card::Card {
+            id: name.to_owned(),
             texture,
             effect: convert_effect(&card.effect),
         });

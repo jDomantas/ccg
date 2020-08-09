@@ -1,6 +1,7 @@
 pub mod main;
 pub mod settings;
 pub mod game;
+pub mod card_list;
 
 use engine::{ggez, Ctx, FrameRenderer, Result};
 use engine::ggez::graphics::{DrawParam, Scale, Text, TextFragment};

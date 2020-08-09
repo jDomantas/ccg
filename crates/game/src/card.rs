@@ -51,6 +51,7 @@ pub enum CardEffect {
 
 #[derive(Debug, Clone)]
 pub struct Card {
+    pub id: String,
     pub texture: Texture,
     pub effect: CardEffect,
 }
