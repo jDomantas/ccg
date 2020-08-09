@@ -12,5 +12,10 @@
         "heal-enemy": 1,
         "empty": 5,
     },
+    treasure: {
+        "big-bonk-2": 1,
+        "heal": 1,
+        "disarm": 1,
+    },
     boss: "boss",
 )

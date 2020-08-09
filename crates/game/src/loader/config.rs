@@ -43,5 +43,6 @@ pub enum CardEffect {
 pub struct Decks {
     pub draw: HashMap<String, u32>,
     pub trap: HashMap<String, u32>,
+    pub treasure: HashMap<String, u32>,
     pub boss: String,
 }

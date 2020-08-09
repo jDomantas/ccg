@@ -4,6 +4,7 @@ use engine::ggez::graphics::{Text, TextFragment, Scale};
 use crate::GameData;
 use crate::card::{BuffKind, Card, CardEffect, Creature, Decks};
 use crate::views::{DrawKind, View, ViewChange};
+use super::CardList;
 
 const CARD_WIDTH: f32 = 320.0 / 2.5;
 const CARD_HEIGHT: f32 = 448.0 / 2.5;
@@ -518,6 +519,7 @@ pub struct GameState {
     labels: Vec<Label>,
     buttons: Vec<Button>,
     boss_bonuses: Vec<Card>,
+    decks: Decks,
 }
 
 fn make_deck(cards: &[Card]) -> Vec<Card> {
@@ -594,7 +596,7 @@ impl GameState {
                 h: 128.0,
             },
             Icon::DECK,
-            |state| ViewChange::Push(Box::new(super::card_list::CardList::new(state.deck.clone()))),
+            |state| ViewChange::Push(Box::new(CardList::new(state.deck.clone()))),
         );
         let trap_deck_button = Button::new(
             Rect {
@@ -604,7 +606,7 @@ impl GameState {
                 h: 128.0,
             },
             Icon::TRAP_DECK,
-            |state| ViewChange::Push(Box::new(super::card_list::CardList::new(state.trap_deck.clone()))),
+            |state| ViewChange::Push(Box::new(CardList::new(state.trap_deck.clone()))),
         );
         let discard_button = Button::new(
             Rect {
@@ -614,7 +616,7 @@ impl GameState {
                 h: 128.0,
             },
             Icon::DECK,
-            |state| ViewChange::Push(Box::new(super::card_list::CardList::new(state.discards.clone()))),
+            |state| ViewChange::Push(Box::new(CardList::new(state.discards.clone()))),
         );
         let trap_discard_button = Button::new(
             Rect {
@@ -624,7 +626,7 @@ impl GameState {
                 h: 128.0,
             },
             Icon::TRAP_DECK,
-            |state| ViewChange::Push(Box::new(super::card_list::CardList::new(state.trap_discards.clone()))),
+            |state| ViewChange::Push(Box::new(CardList::new(state.trap_discards.clone()))),
         );
         let draw_label = Label::new((150.0, SCREEN_HEIGHT - 90.0), |state| state.deck.len().to_string());
         let draw_trap_label = Label::new((150.0, SCREEN_HEIGHT - 228.0), |state| state.trap_deck.len().to_string());
@@ -639,7 +641,7 @@ impl GameState {
                 h: 64.0,
             },
             Icon::DECK,
-            move |state| ViewChange::Push(Box::new(super::card_list::CardList::new(whole_deck.clone()))),
+            move |state| ViewChange::Push(Box::new(CardList::new(whole_deck.clone()))),
         );
         let whole_trap_deck = decks.trap.clone();
         let whole_trap_deck_button = Button::new(
@@ -650,7 +652,7 @@ impl GameState {
                 h: 64.0,
             },
             Icon::TRAP_DECK,
-            move |state| ViewChange::Push(Box::new(super::card_list::CardList::new(whole_trap_deck.clone()))),
+            move |state| ViewChange::Push(Box::new(CardList::new(whole_trap_deck.clone()))),
         );
         let boss_card = decks.boss.clone();
         let boss_preview_button = Button::new(
@@ -665,7 +667,7 @@ impl GameState {
                 let mut cards = state.boss_bonuses.clone();
                 cards.sort_by(|a, b| a.id.cmp(&b.id));
                 cards.insert(0, boss_card.clone());
-                ViewChange::Push(Box::new(super::card_list::CardList::new_unsorted(cards)))
+                ViewChange::Push(Box::new(CardList::new_unsorted(cards)))
             },
         );
         let mut state = GameState {
@@ -685,6 +687,7 @@ impl GameState {
             labels: vec![health_label, coins_label, damage_label, durability_label, level_label, draw_label, draw_trap_label, discard_label, discard_trap_label],
             buttons: vec![deck_button, trap_deck_button, discard_button, trap_discard_button, whole_deck_button, whole_trap_deck_button, boss_preview_button],
             boss_bonuses: Vec::new(),
+            decks: decks.clone(),
         };
         let boss_cell = state.pending_fields.last_mut().unwrap().cells.last_mut().unwrap();
         let mut boss = VisibleCard::new(decks.boss.clone(), Rect {
@@ -834,6 +837,9 @@ impl View for GameState {
                     self.draw_hand();
                     self.draw_traps();
                 }
+                ActionState::Finished(t) if t >= 1.5 && self.field.player.is_some() && self.pending_fields.len() == 0 => {
+                    return Ok(ViewChange::Replace(Box::new(super::CardSelect::new(self.decks.clone()))));
+                }
                 _ => {}
             }
         }
@@ -934,7 +940,7 @@ impl View for GameState {
             label.text.fragments_mut()[0].text = (label.get_text)(self);
         }
         self.labels = labels;
-        Ok(super::ViewChange::None)
+        Ok(ViewChange::None)
     }
 
     fn draw(&mut self, renderer: &mut FrameRenderer<'_>) -> Result {

@@ -59,7 +59,7 @@ fn main() {
         }).expect("failed to set screen coordintes");
         Ok(Box::new(TestGame {
             renderer: resources.renderer,
-            data: GameData { decks: resources.decks },
+            data: GameData { decks: resources.decks.clone() },
             view_stack: views::ViewStack::new(views::MenuView::new(views::main::MainMenu)),
         }))
     });

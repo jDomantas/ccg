@@ -63,5 +63,6 @@ pub struct Card {
 pub struct Decks {
     pub draw: Vec<Card>,
     pub trap: Vec<Card>,
+    pub treasure: Vec<Card>,
     pub boss: Card,
 }

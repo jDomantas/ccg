@@ -94,6 +94,7 @@ fn load_decks(cards: &HashMap<String, card::Card>) -> card::Decks {
     let config: config::Decks = ron::from_str(&decks).unwrap();
     let mut draw = Vec::new();
     let mut trap = Vec::new();
+    let mut treasure = Vec::new();
     for (id, &count) in &config.draw {
         if let Some(card) = cards.get(id) {
             for _ in 0..count {
@@ -112,12 +113,21 @@ fn load_decks(cards: &HashMap<String, card::Card>) -> card::Decks {
             panic!("card not defined: {}", id);
         }
     }
+    for (id, &count) in &config.treasure {
+        if let Some(card) = cards.get(id) {
+            for _ in 0..count {
+                treasure.push(card.clone());
+            }
+        } else {
+            panic!("card not defined: {}", id);
+        }
+    }
     let boss = if let Some(card) = cards.get(&config.boss) {
         card.clone()
     } else {
         panic!("card not defined: {}", config.boss);
     };
-    card::Decks { draw, trap, boss }
+    card::Decks { draw, trap, treasure, boss }
 }
 
 struct CardRenderer<'a> {

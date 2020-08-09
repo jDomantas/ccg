@@ -14,3 +14,4 @@
 [x] card/deck configuration
 [x] boss preview
 [x] prerender cards
+[ ] more monster rewards (weapons, health, armor)
