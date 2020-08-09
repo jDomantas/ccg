@@ -524,14 +524,6 @@ impl GameState {
             };
             format!("{}", player.creature.creature.coins)
         });
-        let damage_label = Label::new((50.0, 50.0), |state| {
-            let player = if let Some(player) = &state.field.player {
-                player
-            } else {
-                return String::new();
-            };
-            format!("{}", player.creature.creature.coins)
-        });
         let damage_label = Label::new((50.0, 90.0), |state| {
             let player = if let Some(player) = &state.field.player {
                 player
@@ -642,7 +634,7 @@ impl GameState {
             hand: Vec::new(),
             drag: None,
             preparing: true,
-            labels: vec![health_label, coins_label, damage_label, draw_label, draw_trap_label, discard_label, discard_trap_label],
+            labels: vec![health_label, coins_label, damage_label, durability_label, draw_label, draw_trap_label, discard_label, discard_trap_label],
             buttons: vec![deck_button, trap_deck_button, discard_button, trap_discard_button, whole_deck_button, whole_trap_deck_button],
         };
         let boss_cell = state.pending_fields.last_mut().unwrap().cells.last_mut().unwrap();
