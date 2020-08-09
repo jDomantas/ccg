@@ -602,6 +602,28 @@ impl GameState {
             Icon::TRAP_DECK,
             |state| ViewChange::Push(Box::new(super::card_list::CardList::new(state.trap_discards.clone()))),
         );
+        let whole_deck = decks.draw.clone();
+        let whole_deck_button = Button::new(
+            Rect {
+                x: SCREEN_WIDTH - 148.0,
+                y: 10.0,
+                w: 64.0,
+                h: 64.0,
+            },
+            Icon::DECK,
+            move |state| ViewChange::Push(Box::new(super::card_list::CardList::new(whole_deck.clone()))),
+        );
+        let whole_trap_deck = decks.trap.clone();
+        let whole_trap_deck_button = Button::new(
+            Rect {
+                x: SCREEN_WIDTH - 74.0,
+                y: 10.0,
+                w: 64.0,
+                h: 64.0,
+            },
+            Icon::TRAP_DECK,
+            move |state| ViewChange::Push(Box::new(super::card_list::CardList::new(whole_trap_deck.clone()))),
+        );
         let mut state = GameState {
             field: Field::new(),
             pending_fields: vec![
@@ -617,7 +639,7 @@ impl GameState {
             drag: None,
             preparing: true,
             labels: vec![health_label, coins_label, damage_label],
-            buttons: vec![deck_button, trap_deck_button, discard_button, trap_discard_button],
+            buttons: vec![deck_button, trap_deck_button, discard_button, trap_discard_button, whole_deck_button, whole_trap_deck_button],
         };
         let boss_cell = state.pending_fields.last_mut().unwrap().cells.last_mut().unwrap();
         let mut boss = VisibleCard::new(decks.boss.clone(), Rect {
