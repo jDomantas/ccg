@@ -554,6 +554,9 @@ impl GameState {
                 String::new()
             }
         });
+        let level_label = Label::new((750.0, 10.0), |state| {
+            format!("Level: {}/4", 4 - state.pending_fields.len())
+        });
         let deck_button = Button::new(
             Rect {
                 x: 10.0,
@@ -634,7 +637,7 @@ impl GameState {
             hand: Vec::new(),
             drag: None,
             preparing: true,
-            labels: vec![health_label, coins_label, damage_label, durability_label, draw_label, draw_trap_label, discard_label, discard_trap_label],
+            labels: vec![health_label, coins_label, damage_label, durability_label, level_label, draw_label, draw_trap_label, discard_label, discard_trap_label],
             buttons: vec![deck_button, trap_deck_button, discard_button, trap_discard_button, whole_deck_button, whole_trap_deck_button],
         };
         let boss_cell = state.pending_fields.last_mut().unwrap().cells.last_mut().unwrap();

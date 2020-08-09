@@ -1,7 +1,7 @@
 [x] show draw pile
 [x] show discard pile
 [x] draw pile -> hand -> discard pile -> draw pile rotation
-[ ] show level number
+[x] show level number
 [x] max health stat
 [x] card list preview (draw pile, discard pile, entire deck)
 [ ] outcome preview - how much health will remain, what items will be bought...
