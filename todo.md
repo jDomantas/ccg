@@ -12,5 +12,5 @@
 [ ] default monitor setting
 [ ] live texture reload
 [x] card/deck configuration
-[ ] boss preview
+[x] boss preview
 [x] prerender cards

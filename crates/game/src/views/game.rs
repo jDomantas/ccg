@@ -652,6 +652,22 @@ impl GameState {
             Icon::TRAP_DECK,
             move |state| ViewChange::Push(Box::new(super::card_list::CardList::new(whole_trap_deck.clone()))),
         );
+        let boss_card = decks.boss.clone();
+        let boss_preview_button = Button::new(
+            Rect {
+                x: SCREEN_WIDTH - 222.0,
+                y: 10.0,
+                w: 64.0,
+                h: 64.0,
+            },
+            Icon::BLUE_BEHOLDER, // FIXME: select properly
+            move |state| {
+                let mut cards = state.boss_bonuses.clone();
+                cards.sort_by(|a, b| a.id.cmp(&b.id));
+                cards.insert(0, boss_card.clone());
+                ViewChange::Push(Box::new(super::card_list::CardList::new_unsorted(cards)))
+            },
+        );
         let mut state = GameState {
             field: Field::new(),
             pending_fields: vec![
@@ -667,7 +683,7 @@ impl GameState {
             drag: None,
             preparing: true,
             labels: vec![health_label, coins_label, damage_label, durability_label, level_label, draw_label, draw_trap_label, discard_label, discard_trap_label],
-            buttons: vec![deck_button, trap_deck_button, discard_button, trap_discard_button, whole_deck_button, whole_trap_deck_button],
+            buttons: vec![deck_button, trap_deck_button, discard_button, trap_discard_button, whole_deck_button, whole_trap_deck_button, boss_preview_button],
             boss_bonuses: Vec::new(),
         };
         let boss_cell = state.pending_fields.last_mut().unwrap().cells.last_mut().unwrap();
@@ -795,7 +811,7 @@ impl View for GameState {
                     let boss = self.field.cells.last_mut().unwrap().enemy.as_mut().unwrap();
                     boss.creature.buffs.push(buff);
                 } else {
-                    let boss = self.pending_fields[0].cells.last_mut().unwrap().enemy.as_mut().unwrap();
+                    let boss = self.pending_fields.last_mut().unwrap().cells.last_mut().unwrap().enemy.as_mut().unwrap();
                     boss.creature.buffs.push(buff);
                 }
             }
