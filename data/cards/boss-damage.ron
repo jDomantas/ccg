@@ -1,0 +1,11 @@
+(
+    icon: "red-sword",
+    title: "oh noes",
+    description: [
+        "boss gains",
+        "+1 damage",
+    ],
+    effect: BossDamage(
+        damage: 1,
+    )
+)

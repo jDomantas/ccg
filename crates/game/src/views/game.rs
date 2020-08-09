@@ -24,6 +24,7 @@ impl ActiveCreature {
         for buff in &self.creature.buffs {
             match buff.kind {
                 BuffKind::NextAttackBonus { damage } => attack += damage,
+                BuffKind::AttackBonus { damage } => attack += damage,
             }
         }
         if let Some(weapon) = &self.creature.weapon {
@@ -35,6 +36,7 @@ impl ActiveCreature {
     fn spend_attack(&mut self) {
         self.creature.buffs.retain(|b| match b.kind {
             BuffKind::NextAttackBonus { .. } => false,
+            BuffKind::AttackBonus { .. } => true,
         });
         if let Some(weapon) = &mut self.creature.weapon {
             weapon.durability -= 1;
@@ -174,6 +176,7 @@ struct Field {
     player: Option<Player>,
     action: ActionState,
     discards: Vec<Card>,
+    boss_bonuses: Vec<Card>,
 }
 
 impl Field {
@@ -221,6 +224,7 @@ impl Field {
             player: None,
             action: ActionState::None,
             discards: Vec::new(),
+            boss_bonuses: Vec::new(),
         }
     }
 
@@ -272,6 +276,9 @@ impl Field {
                 }
                 None
             }
+            CardEffect::BossBuff(buff) => {
+                Some(buff.icon)
+            }
         }
     }
 
@@ -290,6 +297,9 @@ impl Field {
                         self.action = ActionState::PlayerAttack(false, 0.0);
                     } else {
                         if let Some(effect) = self.cells[player.cell].card.as_ref().map(|c| c.card.effect.clone()) {
+                            if matches!(effect, CardEffect::BossBuff(_)) {
+                                self.boss_bonuses.push(self.cells[player.cell].card.as_ref().map(|c| c.card.clone()).unwrap());
+                            }
                             if let Some(icon) = self.apply_effect(&effect) {
                                 self.action = ActionState::AcceptBonus(0.0, icon);
                             } else {
@@ -507,6 +517,7 @@ pub struct GameState {
     preparing: bool,
     labels: Vec<Label>,
     buttons: Vec<Button>,
+    boss_bonuses: Vec<Card>,
 }
 
 fn make_deck(cards: &[Card]) -> Vec<Card> {
@@ -657,6 +668,7 @@ impl GameState {
             preparing: true,
             labels: vec![health_label, coins_label, damage_label, durability_label, level_label, draw_label, draw_trap_label, discard_label, discard_trap_label],
             buttons: vec![deck_button, trap_deck_button, discard_button, trap_discard_button, whole_deck_button, whole_trap_deck_button],
+            boss_bonuses: Vec::new(),
         };
         let boss_cell = state.pending_fields.last_mut().unwrap().cells.last_mut().unwrap();
         let mut boss = VisibleCard::new(decks.boss.clone(), Rect {
@@ -772,6 +784,20 @@ impl View for GameState {
             self.field.update_action(dt * 3.0);
             for card in self.field.discards.drain(..) {
                 self.trap_discards.push(card);
+            }
+            for card in self.field.boss_bonuses.drain(..) {
+                let buff = match &card.effect {
+                    CardEffect::BossBuff(buff) => buff.clone(),
+                    _ => panic!("bad boss bonus"),
+                };
+                self.boss_bonuses.push(card);
+                if self.pending_fields.len() == 0 {
+                    let boss = self.field.cells.last_mut().unwrap().enemy.as_mut().unwrap();
+                    boss.creature.buffs.push(buff);
+                } else {
+                    let boss = self.pending_fields[0].cells.last_mut().unwrap().enemy.as_mut().unwrap();
+                    boss.creature.buffs.push(buff);
+                }
             }
             match self.field.action {
                 ActionState::Finished(t) if t >= 0.5 && self.field.player.is_some() && self.pending_fields.len() > 0 => {

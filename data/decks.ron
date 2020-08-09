@@ -5,9 +5,10 @@
         "heal": 2,
         "sword": 1,
         "beholder": 3,
-        "disarm": 1,
+        "disarm": 3,
     },
     trap: {
+        "boss-damage": 1,
         "heal-enemy": 1,
         "empty": 5,
     },

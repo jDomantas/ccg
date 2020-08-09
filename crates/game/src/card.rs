@@ -11,6 +11,7 @@ pub struct Weapon {
 #[derive(Debug, Clone)]
 pub enum BuffKind {
     NextAttackBonus { damage: u32 },
+    AttackBonus { damage: u32 },
 }
 
 #[derive(Debug, Clone)]
@@ -45,6 +46,7 @@ pub enum CardEffect {
     Heal { health: u32 },
     HealEnemy { health: u32 },
     Buff(Buff),
+    BossBuff(Buff),
     Weapon(Weapon),
     Enemy(Creature),
     Disarm,

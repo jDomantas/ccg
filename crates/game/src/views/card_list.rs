@@ -15,6 +15,10 @@ pub struct CardList {
 impl CardList {
     pub fn new(mut cards: Vec<Card>) -> CardList {
         cards.sort_by(|a, b| a.id.cmp(&b.id));
+        CardList::new_unsorted(cards)
+    }
+
+    pub fn new_unsorted(cards: Vec<Card>) -> CardList {
         let rows = (cards.len() + 5) / 6;
         let mut scroll_cap = rows as f32 * (CARD_HEIGHT + CARD_WIDTH * 0.2) - CARD_HEIGHT * 2.0;
         if scroll_cap < 0.0 {

@@ -34,6 +34,9 @@ pub enum CardEffect {
         price: u32,
     },
     Disarm,
+    BossDamage {
+        damage: u32,
+    },
 }
 
 #[derive(Deserialize, Debug)]

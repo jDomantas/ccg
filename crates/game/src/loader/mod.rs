@@ -180,6 +180,10 @@ fn convert_effect(effect: &config::CardEffect) -> card::CardEffect {
             })
         }
         config::CardEffect::Disarm => card::CardEffect::Disarm,
+        config::CardEffect::BossDamage { damage } => card::CardEffect::BossBuff(card::Buff {
+            icon: engine::Icon::RED_SWORD,
+            kind: card::BuffKind::AttackBonus { damage },
+        }),
     }
 }
 
