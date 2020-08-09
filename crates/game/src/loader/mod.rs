@@ -158,13 +158,14 @@ fn convert_effect(effect: &config::CardEffect) -> card::CardEffect {
         config::CardEffect::None => {
             card::CardEffect::None
         }
-        config::CardEffect::Enemy { ref icon, attack, health, coins } => {
+        config::CardEffect::Enemy { ref icon, attack, health, coins, health_reward } => {
             card::CardEffect::Enemy(card::Creature {
                 icon: engine::Icon::new(icon_index(icon)),
                 health,
                 max_health: None,
                 attack,
                 coins,
+                health_reward: health_reward.unwrap_or(0),
                 weapon: None,
                 buffs: Vec::new(),
             })

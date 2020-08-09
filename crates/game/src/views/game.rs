@@ -190,6 +190,7 @@ impl Field {
                 health: 10,
                 attack: 4,
                 coins: 0,
+                health_reward: 0,
                 weapon: None,
                 buffs: Vec::new(),
             }),
@@ -323,6 +324,7 @@ impl Field {
                     player.creature.spend_attack();
                     if enemy.creature.health == 0 {
                         player.creature.creature.coins += enemy.creature.coins;
+                        player.creature.creature.heal(enemy.creature.health_reward);
                         self.cells[player.cell].enemy = None;
                     }
                 }

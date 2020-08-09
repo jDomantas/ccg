@@ -27,6 +27,7 @@ pub struct Creature {
     pub max_health: Option<u32>,
     pub attack: u32,
     pub coins: u32,
+    pub health_reward: u32,
     pub weapon: Option<Weapon>,
     pub buffs: Vec<Buff>,
 }

@@ -17,6 +17,7 @@ pub enum CardEffect {
         attack: u32,
         health: u32,
         coins: u32,
+        health_reward: Option<u32>,
     },
     NextAttackBonus {
         bonus: u32,
