@@ -602,6 +602,10 @@ impl GameState {
             Icon::TRAP_DECK,
             |state| ViewChange::Push(Box::new(super::card_list::CardList::new(state.trap_discards.clone()))),
         );
+        let draw_label = Label::new((150.0, SCREEN_HEIGHT - 90.0), |state| state.deck.len().to_string());
+        let draw_trap_label = Label::new((150.0, SCREEN_HEIGHT - 228.0), |state| state.trap_deck.len().to_string());
+        let discard_label = Label::new((SCREEN_WIDTH - 170.0, SCREEN_HEIGHT - 90.0), |state| state.discards.len().to_string());
+        let discard_trap_label = Label::new((SCREEN_WIDTH - 170.0, SCREEN_HEIGHT - 228.0), |state| state.trap_discards.len().to_string());
         let whole_deck = decks.draw.clone();
         let whole_deck_button = Button::new(
             Rect {
@@ -638,7 +642,7 @@ impl GameState {
             hand: Vec::new(),
             drag: None,
             preparing: true,
-            labels: vec![health_label, coins_label, damage_label],
+            labels: vec![health_label, coins_label, damage_label, draw_label, draw_trap_label, discard_label, discard_trap_label],
             buttons: vec![deck_button, trap_deck_button, discard_button, trap_discard_button, whole_deck_button, whole_trap_deck_button],
         };
         let boss_cell = state.pending_fields.last_mut().unwrap().cells.last_mut().unwrap();
