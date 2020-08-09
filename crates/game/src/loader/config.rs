@@ -33,6 +33,7 @@ pub enum CardEffect {
         durability: u32,
         price: u32,
     },
+    Disarm,
 }
 
 #[derive(Deserialize, Debug)]

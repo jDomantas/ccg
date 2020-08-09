@@ -137,6 +137,8 @@ fn icon_index(icon: &str) -> u32 {
         "blue-beholder" => 16,
         "green-heart" => 17,
         "broken" => 18,
+        "disarm" => 22,
+        "red-sword" => 23,
         _ => panic!("invalid icon: {:?}", icon)
     }
 }
@@ -177,6 +179,7 @@ fn convert_effect(effect: &config::CardEffect) -> card::CardEffect {
                 price,
             })
         }
+        config::CardEffect::Disarm => card::CardEffect::Disarm,
     }
 }
 

@@ -50,6 +50,8 @@ impl Icon {
     pub const DECK: Icon = Icon { index: 19 };
     pub const TRAP_DECK: Icon = Icon { index: 20 };
     pub const BLACK: Icon = Icon { index: 21 };
+    pub const DISARM: Icon = Icon { index: 22 };
+    pub const RED_SWORD: Icon = Icon { index: 23 };
 
     pub const fn new(index: u32) -> Icon {
         Icon { index }

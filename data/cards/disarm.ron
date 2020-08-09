@@ -1,0 +1,9 @@
+(
+    icon: "disarm",
+    title: "disarm",
+    description: [
+        "remove",
+        "next trap",
+    ],
+    effect: Disarm
+)

@@ -173,6 +173,7 @@ struct Field {
     cells: Vec<Cell>,
     player: Option<Player>,
     action: ActionState,
+    discards: Vec<Card>,
 }
 
 impl Field {
@@ -219,6 +220,7 @@ impl Field {
             ],
             player: None,
             action: ActionState::None,
+            discards: Vec::new(),
         }
     }
 
@@ -253,6 +255,22 @@ impl Field {
             CardEffect::Heal { health } => {
                 player.creature.creature.heal(*health);
                 Some(Icon::HEART)
+            }
+            CardEffect::Disarm => {
+                let cells = &mut self.cells[player.cell..];
+                for c in cells {
+                    if !c.fixed {
+                        continue;
+                    }
+                    if let Some(card) = &c.card {
+                        if !matches!(card.card.effect, CardEffect::None) {
+                            let card = c.card.take().unwrap();
+                            self.discards.push(card.card);
+                            return Some(Icon::DISARM);
+                        }
+                    }
+                }
+                None
             }
         }
     }
@@ -752,6 +770,9 @@ impl View for GameState {
     fn update(&mut self, data: &GameData, ctx: &mut Ctx<'_>, dt: f32) -> Result<ViewChange> {
         if !self.preparing {
             self.field.update_action(dt * 3.0);
+            for card in self.field.discards.drain(..) {
+                self.trap_discards.push(card);
+            }
             match self.field.action {
                 ActionState::Finished(t) if t >= 0.5 && self.field.player.is_some() && self.pending_fields.len() > 0 => {
                     let mut player = self.field.player.take().unwrap();

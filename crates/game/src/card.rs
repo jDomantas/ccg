@@ -47,6 +47,7 @@ pub enum CardEffect {
     Buff(Buff),
     Weapon(Weapon),
     Enemy(Creature),
+    Disarm,
 }
 
 #[derive(Debug, Clone)]
