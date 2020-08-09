@@ -239,7 +239,7 @@ impl Field {
                     self.player_coins -= *price;
                     self.apply_effect(effect)
                 } else {
-                    None
+                    Some(Icon::CROSS)
                 }
             }
             CardEffect::Coins { amount } => {

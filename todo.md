@@ -15,3 +15,7 @@
 [x] boss preview
 [x] prerender cards
 [ ] more monster rewards (weapons, health, armor)
+[ ] document cards
+[ ] boss: on every hit gains +1 damage
+[ ] armor
+[ ] enemy ranged attack (trap)

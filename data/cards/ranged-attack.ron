@@ -5,6 +5,7 @@
         "do one",
         "attack to",
         "next enemy",
+        "(1 coin)",
     ],
     effect: Buy(
         price: 1,
