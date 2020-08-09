@@ -234,16 +234,19 @@ impl Field {
     fn apply_effect(&mut self, card: &CardEffect) -> Option<Icon> {
         let player = self.player.as_mut().unwrap();
         match card {
+            CardEffect::Buy { price, effect } => {
+                if player.creature.creature.coins >= *price {
+                    player.creature.creature.coins -= *price;
+                    self.apply_effect(effect)
+                } else {
+                    None
+                }
+            }
             CardEffect::None => None,
             CardEffect::Enemy(_) => unreachable!(),
             CardEffect::Weapon(weapon) => {
-                if player.creature.creature.coins >= weapon.price {
-                    player.creature.creature.coins -= weapon.price;
-                    player.creature.creature.weapon = Some(weapon.clone());
-                    Some(Icon::SWORD)
-                } else {
-                    Some(Icon::CROSS)
-                }
+                player.creature.creature.weapon = Some(weapon.clone());
+                Some(Icon::SWORD)
             }
             CardEffect::HealEnemy { health } => {
                 let cells = &mut self.cells[player.cell..];

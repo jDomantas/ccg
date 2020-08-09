@@ -32,7 +32,10 @@ pub enum CardEffect {
         icon: String,
         damage: u32,
         durability: u32,
+    },
+    Buy {
         price: u32,
+        effect: Box<CardEffect>,
     },
     Disarm,
 }

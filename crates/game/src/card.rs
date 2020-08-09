@@ -5,7 +5,6 @@ pub struct Weapon {
     pub icon: Icon,
     pub damage: u32,
     pub durability: u32,
-    pub price: u32,
 }
 
 #[derive(Debug, Clone)]
@@ -51,6 +50,7 @@ pub enum CardEffect {
     BossBuff(Buff),
     Weapon(Weapon),
     Enemy(Creature),
+    Buy { price: u32, effect: Box<CardEffect> },
     Disarm,
 }
 

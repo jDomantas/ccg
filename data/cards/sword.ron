@@ -6,10 +6,12 @@
         "2 hits",
         "6 coins",
     ],
-    effect: Weapon(
-        icon: "sword",
-        damage: 5,
-        durability: 2,
+    effect: Buy(
         price: 6,
+        effect: Weapon(
+            icon: "sword",
+            damage: 5,
+            durability: 2,
+        ),
     )
 )

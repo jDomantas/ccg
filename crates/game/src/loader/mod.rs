@@ -180,13 +180,18 @@ fn convert_effect(effect: &config::CardEffect) -> card::CardEffect {
         config::CardEffect::HealEnemy { health } => {
             card::CardEffect::HealEnemy { health }
         }
-        config::CardEffect::Weapon { ref icon, damage, durability, price } => {
+        config::CardEffect::Weapon { ref icon, damage, durability } => {
             card::CardEffect::Weapon(card::Weapon {
                 icon: engine::Icon::new(icon_index(icon)),
                 damage,
                 durability,
-                price,
             })
+        }
+        config::CardEffect::Buy { price, ref effect } => {
+            card::CardEffect::Buy {
+                price,
+                effect: Box::new(convert_effect(effect)),
+            }
         }
         config::CardEffect::Disarm => card::CardEffect::Disarm,
         config::CardEffect::BossBuff(ref buff) => card::CardEffect::BossBuff(convert_buff(buff)),
