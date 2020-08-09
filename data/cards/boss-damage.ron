@@ -5,7 +5,7 @@
         "boss gains",
         "+1 damage",
     ],
-    effect: BossDamage(
-        damage: 1,
-    )
+    effect: BossBuff(AttackBonus(
+        bonus: 1,
+    ))
 )

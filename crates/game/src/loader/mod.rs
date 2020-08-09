@@ -158,7 +158,7 @@ fn convert_effect(effect: &config::CardEffect) -> card::CardEffect {
         config::CardEffect::None => {
             card::CardEffect::None
         }
-        config::CardEffect::Enemy { ref icon, attack, health, coins, health_reward } => {
+        config::CardEffect::Enemy { ref icon, attack, health, coins, health_reward, ref buff_rewards } => {
             card::CardEffect::Enemy(card::Creature {
                 icon: engine::Icon::new(icon_index(icon)),
                 health,
@@ -166,15 +166,13 @@ fn convert_effect(effect: &config::CardEffect) -> card::CardEffect {
                 attack,
                 coins,
                 health_reward: health_reward.unwrap_or(0),
+                buff_rewards: buff_rewards.iter().flat_map(|x| x.iter()).map(convert_buff).collect(),
                 weapon: None,
                 buffs: Vec::new(),
             })
         }
-        config::CardEffect::NextAttackBonus { bonus } => {
-            card::CardEffect::Buff(card::Buff {
-                icon: engine::Icon::SWORD,
-                kind: card::BuffKind::NextAttackBonus { damage: bonus },
-            })
+        config::CardEffect::Buff(ref buff) => {
+            card::CardEffect::Buff(convert_buff(buff))
         }
         config::CardEffect::Heal { health } => {
             card::CardEffect::Heal { health }
@@ -191,10 +189,24 @@ fn convert_effect(effect: &config::CardEffect) -> card::CardEffect {
             })
         }
         config::CardEffect::Disarm => card::CardEffect::Disarm,
-        config::CardEffect::BossDamage { damage } => card::CardEffect::BossBuff(card::Buff {
-            icon: engine::Icon::RED_SWORD,
-            kind: card::BuffKind::AttackBonus { damage },
-        }),
+        config::CardEffect::BossBuff(ref buff) => card::CardEffect::BossBuff(convert_buff(buff)),
+    }
+}
+
+fn convert_buff(buff: &config::Buff) -> card::Buff {
+    match *buff {
+        config::Buff::NextAttackBonus { bonus } => {
+            card::Buff {
+                icon: engine::Icon::SWORD,
+                kind: card::BuffKind::NextAttackBonus { damage: bonus },
+            }
+        }
+        config::Buff::AttackBonus { bonus } => {
+            card::Buff {
+                icon: engine::Icon::SWORD,
+                kind: card::BuffKind::AttackBonus { damage: bonus },
+            }
+        }
     }
 }
 

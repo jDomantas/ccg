@@ -18,10 +18,10 @@ pub enum CardEffect {
         health: u32,
         coins: u32,
         health_reward: Option<u32>,
+        buff_rewards: Option<Vec<Buff>>,
     },
-    NextAttackBonus {
-        bonus: u32,
-    },
+    Buff(Buff),
+    BossBuff(Buff),
     Heal {
         health: u32,
     },
@@ -35,9 +35,12 @@ pub enum CardEffect {
         price: u32,
     },
     Disarm,
-    BossDamage {
-        damage: u32,
-    },
+}
+
+#[derive(Deserialize, Debug)]
+pub enum Buff {
+    NextAttackBonus { bonus: u32 },
+    AttackBonus { bonus: u32 },
 }
 
 #[derive(Deserialize, Debug)]

@@ -5,7 +5,7 @@
         "+5 to next",
         "attack",
     ],
-    effect: NextAttackBonus(
+    effect: Buff(NextAttackBonus(
         bonus: 5,
-    )
+    ))
 )

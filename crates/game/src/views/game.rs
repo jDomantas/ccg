@@ -191,6 +191,7 @@ impl Field {
                 attack: 4,
                 coins: 0,
                 health_reward: 0,
+                buff_rewards: Vec::new(),
                 weapon: None,
                 buffs: Vec::new(),
             }),
@@ -325,6 +326,7 @@ impl Field {
                     if enemy.creature.health == 0 {
                         player.creature.creature.coins += enemy.creature.coins;
                         player.creature.creature.heal(enemy.creature.health_reward);
+                        player.creature.creature.buffs.extend(enemy.creature.buff_rewards.iter().cloned());
                         self.cells[player.cell].enemy = None;
                     }
                 }
