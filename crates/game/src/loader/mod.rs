@@ -147,8 +147,12 @@ fn icon_index(icon: &str) -> u32 {
         "blue-beholder" => 16,
         "green-heart" => 17,
         "broken" => 18,
+        "black" => 21,
         "disarm" => 22,
         "red-sword" => 23,
+        "bow" => 24,
+        "fighter-2" => 25,
+        "chicken" => 26,
         _ => panic!("invalid icon: {:?}", icon)
     }
 }
@@ -158,15 +162,13 @@ fn convert_effect(effect: &config::CardEffect) -> card::CardEffect {
         config::CardEffect::None => {
             card::CardEffect::None
         }
-        config::CardEffect::Enemy { ref icon, attack, health, coins, health_reward, ref buff_rewards } => {
+        config::CardEffect::Enemy { ref icon, attack, health, ref rewards } => {
             card::CardEffect::Enemy(card::Creature {
                 icon: engine::Icon::new(icon_index(icon)),
                 health,
                 max_health: None,
                 attack,
-                coins,
-                health_reward: health_reward.unwrap_or(0),
-                buff_rewards: buff_rewards.iter().flat_map(|x| x.iter()).map(convert_buff).collect(),
+                rewards: rewards.iter().map(convert_effect).collect(),
                 weapon: None,
                 buffs: Vec::new(),
             })
@@ -176,6 +178,12 @@ fn convert_effect(effect: &config::CardEffect) -> card::CardEffect {
         }
         config::CardEffect::Heal { health } => {
             card::CardEffect::Heal { health }
+        }
+        config::CardEffect::Coins { amount } => {
+            card::CardEffect::Coins { amount }
+        }
+        config::CardEffect::Attack { use_base, bonus } => {
+            card::CardEffect::Attack { use_base, bonus }
         }
         config::CardEffect::HealEnemy { health } => {
             card::CardEffect::HealEnemy { health }

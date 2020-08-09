@@ -1,0 +1,16 @@
+(
+    icon: "bow",
+    title: "attack",
+    description: [
+        "do one",
+        "attack to",
+        "next enemy",
+    ],
+    effect: Buy(
+        price: 1,
+        effect: Attack(
+            use_base: true,
+            bonus: 0,
+        ),
+    ),
+)

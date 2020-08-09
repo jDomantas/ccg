@@ -16,14 +16,20 @@ pub enum CardEffect {
         icon: String,
         attack: u32,
         health: u32,
-        coins: u32,
-        health_reward: Option<u32>,
-        buff_rewards: Option<Vec<Buff>>,
+        #[serde(default)]
+        rewards: Vec<CardEffect>,
     },
     Buff(Buff),
     BossBuff(Buff),
     Heal {
         health: u32,
+    },
+    Coins {
+        amount: u32,
+    },
+    Attack {
+        use_base: bool,
+        bonus: u32,
     },
     HealEnemy {
         health: u32,

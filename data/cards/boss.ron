@@ -9,6 +9,8 @@
         icon: "blue-beholder",
         attack: 7,
         health: 20,
-        coins: 100,
+        rewards: [
+            Coins(amount: 100),
+        ],
     )
 )

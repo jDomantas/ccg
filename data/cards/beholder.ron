@@ -10,6 +10,8 @@
         icon: "beholder",
         attack: 5,
         health: 10,
-        coins: 6,
+        rewards: [
+            Coins(amount: 6),
+        ],
     )
 )

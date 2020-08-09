@@ -1,0 +1,12 @@
+(
+    icon: "sword",
+    title: "+ damage",
+    description: [
+        "1 attack",
+        "2 coins",
+    ],
+    effect: Buy(
+        price: 2,
+        effect: Buff(AttackBonus(bonus: 1)),
+    )
+)

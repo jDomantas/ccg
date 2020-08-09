@@ -1,0 +1,8 @@
+(
+    icon: "coin",
+    title: "free money",
+    description: [
+        "3 coins",
+    ],
+    effect: Coins(amount: 3),
+)

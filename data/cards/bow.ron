@@ -1,0 +1,17 @@
+(
+    icon: "bow",
+    title: "bow",
+    description: [
+        "2 attack",
+        "3 hits",
+        "1 coins",
+    ],
+    effect: Buy(
+        price: 1,
+        effect: Weapon(
+            icon: "bow",
+            damage: 2,
+            durability: 3,
+        ),
+    )
+)

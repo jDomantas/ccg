@@ -175,6 +175,7 @@ enum ActionState {
 struct Field {
     cells: Vec<Cell>,
     player: Option<Player>,
+    player_coins: u32,
     action: ActionState,
     discards: Vec<Card>,
     boss_bonuses: Vec<Card>,
@@ -186,12 +187,10 @@ impl Field {
         field.player = Some(Player {
             creature: ActiveCreature::from(Creature {
                 icon: Icon::FIGHTER,
-                max_health: Some(10),
-                health: 10,
-                attack: 4,
-                coins: 0,
-                health_reward: 0,
-                buff_rewards: Vec::new(),
+                max_health: Some(30),
+                health: 30,
+                attack: 3,
+                rewards: Vec::new(),
                 weapon: None,
                 buffs: Vec::new(),
             }),
@@ -225,6 +224,7 @@ impl Field {
                 Cell { position: (gen_x(), 100.0 + 150.0), card: None, fixed: false, enemy: None },
             ],
             player: None,
+            player_coins: 0,
             action: ActionState::None,
             discards: Vec::new(),
             boss_bonuses: Vec::new(),
@@ -235,12 +235,16 @@ impl Field {
         let player = self.player.as_mut().unwrap();
         match card {
             CardEffect::Buy { price, effect } => {
-                if player.creature.creature.coins >= *price {
-                    player.creature.creature.coins -= *price;
+                if self.player_coins >= *price {
+                    self.player_coins -= *price;
                     self.apply_effect(effect)
                 } else {
                     None
                 }
+            }
+            CardEffect::Coins { amount } => {
+                self.player_coins += *amount;
+                Some(Icon::COIN)
             }
             CardEffect::None => None,
             CardEffect::Enemy(_) => unreachable!(),
@@ -266,6 +270,20 @@ impl Field {
                 player.creature.creature.heal(*health);
                 Some(Icon::HEART)
             }
+            CardEffect::Attack { use_base, bonus } => {
+                let cells = &mut self.cells[player.cell..];
+                for c in cells {
+                    if let Some(enemy) = &mut c.enemy {
+                        let damage = bonus + if *use_base { player.creature.attack_power() } else { 0 };
+                        enemy.creature.health = enemy.creature.health.saturating_sub(damage);
+                        if *use_base {
+                            player.creature.spend_attack();
+                        }
+                        return Some(Icon::SWORD);
+                    }
+                }
+                None
+            }
             CardEffect::Disarm => {
                 let cells = &mut self.cells[player.cell..];
                 for c in cells {
@@ -289,32 +307,35 @@ impl Field {
     }
 
     fn update_action(&mut self, dt: f32) {
-        match &mut self.action {
+        let mut action = std::mem::replace(&mut self.action, ActionState::None);
+        let new_action = match &mut action {
             ActionState::None => {
-                self.action = ActionState::PlayerMove(0.0);
+                Some(ActionState::PlayerMove(0.0))
             }
-            ActionState::Finished(t) => { *t += dt; }
+            ActionState::Finished(t) => { *t += dt; None }
             ActionState::PlayerMove(progress) => {
                 *progress += dt / 1.2;
                 if *progress >= 1.0 {
                     let player = self.player.as_mut().unwrap();
                     player.cell += 1;
                     if self.cells[player.cell].enemy.is_some() {
-                        self.action = ActionState::PlayerAttack(false, 0.0);
+                        Some(ActionState::PlayerAttack(false, 0.0))
                     } else {
                         if let Some(effect) = self.cells[player.cell].card.as_ref().map(|c| c.card.effect.clone()) {
                             if matches!(effect, CardEffect::BossBuff(_)) {
                                 self.boss_bonuses.push(self.cells[player.cell].card.as_ref().map(|c| c.card.clone()).unwrap());
                             }
                             if let Some(icon) = self.apply_effect(&effect) {
-                                self.action = ActionState::AcceptBonus(0.0, icon);
+                                Some(ActionState::AcceptBonus(0.0, icon))
                             } else {
-                                self.action = ActionState::PlayerMove(0.0);
+                                Some(ActionState::PlayerMove(0.0))
                             }
                         } else {
-                            self.action = ActionState::PlayerMove(0.0);
+                            Some(ActionState::PlayerMove(0.0))
                         }
                     }
+                } else {
+                    None
                 }
             }
             ActionState::PlayerAttack(hit, progress) => {
@@ -323,22 +344,28 @@ impl Field {
                 if *progress >= 0.5 && !*hit {
                     *hit = true;
                     let enemy = self.cells[player.cell].enemy.as_mut().unwrap();
-                    let damage = player.creature.attack_power();
-                    enemy.creature.health = enemy.creature.health.saturating_sub(damage);
-                    player.creature.spend_attack();
+                    if enemy.creature.health > 0 {
+                        let damage = player.creature.attack_power();
+                        enemy.creature.health = enemy.creature.health.saturating_sub(damage);
+                        player.creature.spend_attack();
+                    }
                     if enemy.creature.health == 0 {
-                        player.creature.creature.coins += enemy.creature.coins;
-                        player.creature.creature.heal(enemy.creature.health_reward);
-                        player.creature.creature.buffs.extend(enemy.creature.buff_rewards.iter().cloned());
+                        let rewards = enemy.creature.rewards.clone();
                         self.cells[player.cell].enemy = None;
+                        for reward in rewards {
+                            self.apply_effect(&reward);
+                        }
                     }
                 }
+                let player = self.player.as_mut().unwrap();
                 if *progress >= 1.0 {
                     if self.cells[player.cell].enemy.is_none() {
-                        self.action = ActionState::PlayerMove(0.0);
+                        Some(ActionState::PlayerMove(0.0))
                     } else {
-                        self.action = ActionState::EnemyAttack(false, player.cell, 0.0);
+                        Some(ActionState::EnemyAttack(false, player.cell, 0.0))
                     }
+                } else {
+                    None
                 }
             }
             ActionState::EnemyAttack(hit, cell, progress) => {
@@ -356,19 +383,24 @@ impl Field {
                 }
                 if *progress >= 1.0 {
                     if self.player.is_none() {
-                        self.action = ActionState::Finished(0.0);
+                        Some(ActionState::Finished(0.0))
                     } else {
-                        self.action = ActionState::PlayerAttack(false, 0.0);
+                        Some(ActionState::PlayerAttack(false, 0.0))
                     }
+                } else {
+                    None
                 }
             }
             ActionState::AcceptBonus(progress, _) => {
                 *progress += dt;
                 if *progress >= 0.6 {
-                    self.action = ActionState::PlayerMove(0.0);
+                    Some(ActionState::PlayerMove(0.0))
+                } else {
+                    None
                 }
             }
-        }
+        };
+        self.action = new_action.unwrap_or(action);
         if let ActionState::PlayerMove(_) = self.action {
             if let Some(player) = &self.player {
                 if player.cell == self.cells.len() - 1 {
@@ -560,7 +592,7 @@ impl GameState {
             } else {
                 return String::new();
             };
-            format!("{}", player.creature.creature.coins)
+            format!("{}", state.field.player_coins)
         });
         let damage_label = Label::new((50.0, 90.0), |state| {
             let player = if let Some(player) = &state.field.player {
@@ -827,6 +859,7 @@ impl View for GameState {
             }
             match self.field.action {
                 ActionState::Finished(t) if t >= 0.5 && self.field.player.is_some() && self.pending_fields.len() > 0 => {
+                    let coins = self.field.player_coins;
                     let mut player = self.field.player.take().unwrap();
                     player.cell = 0;
                     for cell in &mut self.field.cells {
@@ -839,6 +872,7 @@ impl View for GameState {
                         }
                     }
                     self.field = self.pending_fields.remove(0);
+                    self.field.player_coins = coins;
                     self.field.player = Some(player);
                     self.preparing = true;
                     self.draw_hand();

@@ -1,0 +1,20 @@
+(
+    icon: "black",
+    title: "demon",
+    description: [
+        "5 attack",
+        "15 health",
+        "gives:",
+        "2 attack",
+        "2 coins",
+    ],
+    effect: Enemy(
+        icon: "black",
+        attack: 5,
+        health: 15,
+        rewards: [
+            Buff(AttackBonus(bonus: 2)),
+            Coins(amount: 2),
+        ],
+    )
+)

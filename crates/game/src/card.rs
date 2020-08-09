@@ -25,9 +25,7 @@ pub struct Creature {
     pub health: u32,
     pub max_health: Option<u32>,
     pub attack: u32,
-    pub coins: u32,
-    pub health_reward: u32,
-    pub buff_rewards: Vec<Buff>,
+    pub rewards: Vec<CardEffect>,
     pub weapon: Option<Weapon>,
     pub buffs: Vec<Buff>,
 }
@@ -45,6 +43,8 @@ impl Creature {
 pub enum CardEffect {
     None,
     Heal { health: u32 },
+    Coins { amount: u32 },
+    Attack { use_base: bool, bonus: u32 },
     HealEnemy { health: u32 },
     Buff(Buff),
     BossBuff(Buff),

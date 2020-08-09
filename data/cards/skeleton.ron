@@ -1,0 +1,22 @@
+(
+    icon: "fighter-2",
+    title: "skeleton",
+    description: [
+        "6 attack",
+        "2 health",
+        "gives:",
+        "3/2 weapon",
+    ],
+    effect: Enemy(
+        icon: "fighter-2",
+        attack: 6,
+        health: 2,
+        rewards: [
+            Weapon(
+                icon: "sword",
+                damage: 3,
+                durability: 2,
+            ),
+        ],
+    )
+)
