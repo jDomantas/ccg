@@ -1,5 +1,5 @@
 (
-    icon: "heart",
+    icon: Heart,
     title: "heal",
     description: [
         "+5 health",

@@ -1,5 +1,5 @@
 (
-    icon: "coin",
+    icon: Coin,
     title: "free money",
     description: [
         "3 coins",

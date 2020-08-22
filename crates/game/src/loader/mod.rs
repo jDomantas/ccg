@@ -135,25 +135,34 @@ struct CardRenderer<'a> {
     base: &'a Image,
 }
 
-fn icon_index(icon: &str) -> u32 {
+fn icon_index(icon: config::Icon) -> u32 {
     match icon {
-        "sword" => 4,
-        "heart" => 5,
-        "shield" => 6,
-        "beholder" => 8,
-        "coin" => 12,
-        "cross" => 13,
-        "bang" => 14,
-        "blue-beholder" => 16,
-        "green-heart" => 17,
-        "broken" => 18,
-        "black" => 21,
-        "disarm" => 22,
-        "red-sword" => 23,
-        "bow" => 24,
-        "fighter-2" => 25,
-        "chicken" => 26,
-        _ => panic!("invalid icon: {:?}", icon)
+        config::Icon::Circle => 1,
+        config::Icon::Dot => 2,
+        config::Icon::Square => 3,
+        config::Icon::Sword => 4,
+        config::Icon::Heart => 5,
+        config::Icon::Shield => 6,
+        config::Icon::Fighter => 7,
+        config::Icon::Beholder => 8,
+        config::Icon::Card => 9,
+        config::Icon::Play => 10,
+        config::Icon::CardBack => 11,
+        config::Icon::Coin => 12,
+        config::Icon::Cross => 13,
+        config::Icon::Bang => 14,
+        config::Icon::RedCircle => 15,
+        config::Icon::BlueBeholder => 16,
+        config::Icon::GreenHeart => 17,
+        config::Icon::Broken => 18,
+        config::Icon::Deck => 19,
+        config::Icon::TrapDeck => 20,
+        config::Icon::Black => 21,
+        config::Icon::Disarm => 22,
+        config::Icon::RedSword => 23,
+        config::Icon::Bow => 24,
+        config::Icon::Fighter2 => 25,
+        config::Icon::Chicken => 26,
     }
 }
 
@@ -162,19 +171,28 @@ fn convert_effect(effect: &config::CardEffect) -> card::CardEffect {
         config::CardEffect::None => {
             card::CardEffect::None
         }
-        config::CardEffect::Enemy { ref icon, attack, health, ref rewards } => {
+        config::CardEffect::Enemy { icon, attack, health, max_health, ref rewards } => {
             card::CardEffect::Enemy(card::Creature {
-                icon: engine::Icon::new(icon_index(icon)),
+                icon: icon.into(),
                 health,
-                max_health: None,
+                max_health: max_health,
+                armor: 0,
                 attack,
                 rewards: rewards.iter().map(convert_effect).collect(),
                 weapon: None,
                 buffs: Vec::new(),
             })
         }
-        config::CardEffect::Buff(ref buff) => {
-            card::CardEffect::Buff(convert_buff(buff))
+        config::CardEffect::Buff { icon, ref kind, expiration } => {
+            card::CardEffect::Buff(card::Buff {
+                icon: icon.into(),
+                kind: convert_buff(kind),
+                expiration: match expiration {
+                    config::BuffExpiration::Permanent => card::BuffExpiration::Permanent,
+                    config::BuffExpiration::AfterAttack => card::BuffExpiration::AfterAttack,
+                    config::BuffExpiration::AfterBeingHit => card::BuffExpiration::AfterBeingHit,
+                },
+            })
         }
         config::CardEffect::Heal { health } => {
             card::CardEffect::Heal { health }
@@ -188,9 +206,9 @@ fn convert_effect(effect: &config::CardEffect) -> card::CardEffect {
         config::CardEffect::HealEnemy { health } => {
             card::CardEffect::HealEnemy { health }
         }
-        config::CardEffect::Weapon { ref icon, damage, durability } => {
+        config::CardEffect::Weapon { icon, damage, durability } => {
             card::CardEffect::Weapon(card::Weapon {
-                icon: engine::Icon::new(icon_index(icon)),
+                icon: icon.into(),
                 damage,
                 durability,
             })
@@ -202,24 +220,31 @@ fn convert_effect(effect: &config::CardEffect) -> card::CardEffect {
             }
         }
         config::CardEffect::Disarm => card::CardEffect::Disarm,
-        config::CardEffect::BossBuff(ref buff) => card::CardEffect::BossBuff(convert_buff(buff)),
+        config::CardEffect::BossBuff { icon, ref kind, expiration } => {
+            card::CardEffect::BossBuff(card::Buff {
+                icon: icon.into(),
+                kind: convert_buff(kind),
+                expiration: match expiration {
+                    config::BuffExpiration::Permanent => card::BuffExpiration::Permanent,
+                    config::BuffExpiration::AfterAttack => card::BuffExpiration::AfterAttack,
+                    config::BuffExpiration::AfterBeingHit => card::BuffExpiration::AfterBeingHit,
+                },
+            })
+        }
+        config::CardEffect::Armor { amount } => {
+            card::CardEffect::Armor { amount }
+        }
     }
 }
 
-fn convert_buff(buff: &config::Buff) -> card::Buff {
+fn convert_buff(buff: &config::Buff) -> card::BuffKind {
     match *buff {
-        config::Buff::NextAttackBonus { bonus } => {
-            card::Buff {
-                icon: engine::Icon::SWORD,
-                kind: card::BuffKind::NextAttackBonus { damage: bonus },
-            }
-        }
-        config::Buff::AttackBonus { bonus } => {
-            card::Buff {
-                icon: engine::Icon::SWORD,
-                kind: card::BuffKind::AttackBonus { damage: bonus },
-            }
-        }
+        config::Buff::AttackBonus { bonus } => card::BuffKind::AttackBonus {
+            damage: bonus,
+        },
+        config::Buff::OnAttack { ref effect } => card::BuffKind::OnAttack {
+            effect: Box::new(convert_effect(effect)),
+        },
     }
 }
 
@@ -241,7 +266,7 @@ impl CardRenderer<'_> {
         ggez::graphics::draw(ctx, self.base, ggez::graphics::DrawParam::new()
             .src(Rect { x: 0.0, y: 0.0, w: 1.0, h: 1.0 })
             .dest([0.0, 0.0]))?;
-        let icon = icon_index(&config.icon);
+        let icon = icon_index(config.icon);
         let col = icon % 8;
         let row = icon / 8;
         ggez::graphics::draw(ctx, self.icons, ggez::graphics::DrawParam::new()

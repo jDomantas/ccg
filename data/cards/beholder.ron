@@ -1,5 +1,5 @@
 (
-    icon: "beholder",
+    icon: Beholder,
     title: "beholder",
     description: [
         "5 attack",
@@ -7,7 +7,7 @@
         "5 coins",
     ],
     effect: Enemy(
-        icon: "beholder",
+        icon: Beholder,
         attack: 5,
         health: 10,
         rewards: [

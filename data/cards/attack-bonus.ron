@@ -1,5 +1,5 @@
 (
-    icon: "sword",
+    icon: Sword,
     title: "+ damage",
     description: [
         "1 attack",
@@ -7,6 +7,10 @@
     ],
     effect: Buy(
         price: 2,
-        effect: Buff(AttackBonus(bonus: 1)),
+        effect: Buff(
+            icon: Sword,
+            kind: AttackBonus(bonus: 1),
+            expiration: Permanent,
+        ),
     )
 )

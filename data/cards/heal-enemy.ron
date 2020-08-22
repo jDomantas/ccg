@@ -1,5 +1,5 @@
 (
-    icon: "green-heart",
+    icon: GreenHeart,
     title: "heal foe",
     description: [
         "heal next",

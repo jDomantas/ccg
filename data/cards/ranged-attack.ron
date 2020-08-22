@@ -1,5 +1,5 @@
 (
-    icon: "bow",
+    icon: Bow,
     title: "attack",
     description: [
         "do one",

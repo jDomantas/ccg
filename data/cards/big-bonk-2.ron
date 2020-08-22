@@ -1,11 +1,13 @@
 (
-    icon: "bang",
+    icon: Bang,
     title: "BIG bonk",
     description: [
         "+7 to next",
         "attack",
     ],
-    effect: Buff(NextAttackBonus(
-        bonus: 7,
-    ))
+    effect: Buff(
+        icon: Bang,
+        kind: AttackBonus(bonus: 7),
+        expiration: AfterAttack,
+    )
 )

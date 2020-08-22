@@ -1,12 +1,12 @@
 (
-    icon: "blue-beholder",
+    icon: BlueBeholder,
     title: "boss",
     description: [
         "7 attack",
         "20 health",
     ],
     effect: Enemy(
-        icon: "blue-beholder",
+        icon: BlueBeholder,
         attack: 7,
         health: 20,
         rewards: [

@@ -2,7 +2,7 @@ use std::convert::TryInto;
 use engine::{Ctx, FrameRenderer, Icon, Result, SCREEN_HEIGHT, SCREEN_WIDTH};
 use engine::ggez::graphics::{Text, TextFragment, Scale};
 use crate::GameData;
-use crate::card::{BuffKind, Card, CardEffect, Creature, Decks};
+use crate::card::{BuffExpiration, BuffKind, Card, CardEffect, Creature, Decks};
 use crate::views::{DrawKind, View, ViewChange};
 use super::CardList;
 
@@ -24,8 +24,8 @@ impl ActiveCreature {
         let mut attack = self.creature.attack;
         for buff in &self.creature.buffs {
             match buff.kind {
-                BuffKind::NextAttackBonus { damage } => attack += damage,
                 BuffKind::AttackBonus { damage } => attack += damage,
+                BuffKind::OnAttack { .. } => {}
             }
         }
         if let Some(weapon) = &self.creature.weapon {
@@ -35,9 +35,10 @@ impl ActiveCreature {
     }
 
     fn spend_attack(&mut self) {
-        self.creature.buffs.retain(|b| match b.kind {
-            BuffKind::NextAttackBonus { .. } => false,
-            BuffKind::AttackBonus { .. } => true,
+        self.creature.buffs.retain(|b| match b.expiration {
+            BuffExpiration::Permanent |
+            BuffExpiration::AfterBeingHit => true,
+            BuffExpiration::AfterAttack => false,
         });
         if let Some(weapon) = &mut self.creature.weapon {
             weapon.durability -= 1;
@@ -189,6 +190,7 @@ impl Field {
                 icon: Icon::FIGHTER,
                 max_health: Some(30),
                 health: 30,
+                armor: 0,
                 attack: 3,
                 rewards: Vec::new(),
                 weapon: None,
@@ -302,6 +304,10 @@ impl Field {
             }
             CardEffect::BossBuff(buff) => {
                 Some(buff.icon)
+            }
+            CardEffect::Armor { amount } => {
+                player.creature.creature.armor += amount;
+                Some(Icon::SHIELD)
             }
         }
     }
@@ -744,6 +750,9 @@ impl GameState {
     }
 
     fn layout_cards(&mut self, place: bool) {
+        if self.hand.is_empty() {
+            return;
+        }
         let hand_width = self.hand.len() as f32 * CARD_WIDTH + (self.hand.len() - 1) as f32 * CARD_WIDTH * 0.1;
         let start_x = SCREEN_WIDTH / 2.0 - hand_width / 2.0;
         for (i, card) in self.hand.iter_mut().enumerate() {

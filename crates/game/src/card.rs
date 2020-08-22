@@ -9,14 +9,24 @@ pub struct Weapon {
 
 #[derive(Debug, Clone)]
 pub enum BuffKind {
-    NextAttackBonus { damage: u32 },
+    /// Increases owner's attack damage
     AttackBonus { damage: u32 },
+    /// Applied to owner creature after it hits another creature
+    OnAttack { effect: Box<CardEffect> },
 }
 
 #[derive(Debug, Clone)]
 pub struct Buff {
     pub icon: Icon,
     pub kind: BuffKind,
+    pub expiration: BuffExpiration,
+}
+
+#[derive(PartialEq, Eq, Debug, Copy, Clone)]
+pub enum BuffExpiration {
+    Permanent,
+    AfterAttack,
+    AfterBeingHit,
 }
 
 #[derive(Debug, Clone)]
@@ -24,7 +34,9 @@ pub struct Creature {
     pub icon: Icon,
     pub health: u32,
     pub max_health: Option<u32>,
+    pub armor: u32,
     pub attack: u32,
+    /// Applied to attacking creature after it kills owner creature
     pub rewards: Vec<CardEffect>,
     pub weapon: Option<Weapon>,
     pub buffs: Vec<Buff>,
@@ -43,6 +55,7 @@ impl Creature {
 pub enum CardEffect {
     None,
     Heal { health: u32 },
+    Armor { amount: u32 },
     Coins { amount: u32 },
     Attack { use_base: bool, bonus: u32 },
     HealEnemy { health: u32 },

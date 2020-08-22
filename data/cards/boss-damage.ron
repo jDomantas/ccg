@@ -1,11 +1,13 @@
 (
-    icon: "red-sword",
+    icon: RedSword,
     title: "oh noes",
     description: [
         "boss gains",
         "+1 damage",
     ],
-    effect: BossBuff(AttackBonus(
-        bonus: 1,
-    ))
+    effect: BossBuff(
+        icon: RedSword,
+        kind: AttackBonus(bonus: 1),
+        expiration: Permanent,
+    )
 )

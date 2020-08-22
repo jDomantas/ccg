@@ -1,5 +1,5 @@
 (
-    icon: "chicken",
+    icon: Chicken,
     title: "chicken",
     description: [
         "2 attack",
@@ -7,11 +7,13 @@
         "heals 4",
     ],
     effect: Enemy(
-        icon: "chicken",
+        icon: Chicken,
         attack: 2,
         health: 4,
         rewards: [
-            Heal(health: 4),
+            Heal(
+                health: 4,
+            ),
         ],
     )
 )

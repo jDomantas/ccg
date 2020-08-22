@@ -1,5 +1,5 @@
 (
-    icon: "sword",
+    icon: Sword,
     title: "sword",
     description: [
         "5 attack",
@@ -9,7 +9,7 @@
     effect: Buy(
         price: 6,
         effect: Weapon(
-            icon: "sword",
+            icon: Sword,
             damage: 5,
             durability: 2,
         ),

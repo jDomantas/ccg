@@ -1,5 +1,5 @@
 (
-    icon: "broken",
+    icon: Broken,
     title: "",
     description: [
         "no effect",

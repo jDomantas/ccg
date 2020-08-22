@@ -1,5 +1,5 @@
 (
-    icon: "fighter-2",
+    icon: Fighter2,
     title: "skeleton",
     description: [
         "6 attack",
@@ -8,12 +8,12 @@
         "3/2 weapon",
     ],
     effect: Enemy(
-        icon: "fighter-2",
+        icon: Fighter2,
         attack: 6,
         health: 2,
         rewards: [
             Weapon(
-                icon: "sword",
+                icon: Sword,
                 damage: 3,
                 durability: 2,
             ),
